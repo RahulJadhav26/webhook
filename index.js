@@ -8,13 +8,12 @@ dotenv.config()
 
 // Initialize express and define a port
 const app = express()
-const routes = require('./routes/dataAPI')
 const PORT = process.env.PORT || 4000
 
 // Tell express to use body-parser's JSON parsing
 app.use(bodyParser.json())
 app.use(cors())
-app.use('/api',routes)
+
 //...
 app.use(bodyParser.json())
 var arr = []
@@ -26,6 +25,11 @@ app.post("/hook", (req, res) => {
   }
   res.status(200).end() // Responding is important
 })
+app.get('/data', (req,res)=>{
+  console.log("Data Requested")
+  res.send(arr)
+})
+
 app.get("/", (req,res)=>{
     res.send("Welcome to CENT LOCAL SERVER")
 })
