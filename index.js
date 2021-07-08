@@ -15,6 +15,9 @@ var arr = []
 app.post("/hook", (req, res) => {
   arr.push(req.body)  
   console.log(req.body) // Call your action on the request here
+  if(arr.length > 200 ){
+   arr = arr.slice(50,200)
+  }
   res.status(200).end() // Responding is important
 })
 app.get("/", (req,res)=>{
