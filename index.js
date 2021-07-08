@@ -1,14 +1,18 @@
 // Require express and body-parser
 const express = require("express")
 const bodyParser = require("body-parser")
+const cors = require("cors")
+const dotenv =require('dotenv')
+
+dotenv.config()
 
 // Initialize express and define a port
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT || 4000
 
 // Tell express to use body-parser's JSON parsing
 app.use(bodyParser.json())
-
+app.use(cors())
 //...
 app.use(bodyParser.json())
 var arr = []
@@ -23,9 +27,7 @@ app.post("/hook", (req, res) => {
 app.get("/", (req,res)=>{
     res.send("Welcome to CENT LOCAL SERVER")
 })
-app.get("/data", (req,res)=>{
-    res.send(arr)
-})
+
 
 //...
 
