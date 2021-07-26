@@ -3,6 +3,7 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const cors = require("cors")
 const dotenv =require('dotenv')
+const assert = require('assert')
 
 dotenv.config()
 
@@ -13,21 +14,37 @@ const PORT = process.env.PORT || 4000
 // Tell express to use body-parser's JSON parsing
 app.use(bodyParser.json())
 app.use(cors())
-
-//...
 app.use(bodyParser.json())
-var arr = []
+
+
+var MongoClient = require('mongodb').MongoClient;
+var url = "mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/test";
+
 app.post("/hook", (req, res) => {
-  arr.push(req.body)  
-  console.log(req.body) // Call your action on the request here
-  if(arr.length > 200 ){
-   arr = arr.slice(50,200)
-  }
-  res.status(200).end() // Responding is important
+  var item = req.body
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection("3rd Floor CENT").insertOne(item)
+    .then((results)=>{
+      console.log("1 document Inserted")
+      res.send({status:true,data:results,msg:"1 document Inserted successfully"})
+    })
+  });
 })
 app.get('/data', (req,res)=>{
-  console.log("Data Requested")
-  res.send(arr)
+ MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection("3rd Floor CENT").find({}).toArray()
+    .then(results =>{
+      console.log(results)
+      res.send({status:true, data:results, msg:" All documents queried successfully"})
+    })
+    .catch(error =>{
+      console.error(error)
+    })
+  })
 })
 
 app.get("/", (req,res)=>{
