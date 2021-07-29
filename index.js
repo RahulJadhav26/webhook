@@ -18,7 +18,7 @@ app.use(bodyParser.json())
 
 
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/test";
+var url = "mongodb+srv://Raul1234:<password>@cluster0.enbid.mongodb.net";
 
 app.post("/hook", (req, res) => {
   var item = req.body
@@ -38,7 +38,22 @@ app.get('/data', (req,res)=>{
     var dbo = db.db("sensor-data");
     dbo.collection("3rd Floor CENT").find({}).toArray()
     .then(results =>{
+      var result = results.reverse()
+      res.send({status:true, data:result, msg:" All documents queried successfully"})
+    })
+    .catch(error =>{
+      console.error(error)
+    })
+  })
+})
+app.get('/downloadAll', (req,res)=>{
+ MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection("3rd Floor CENT").find({}).toArray()
+    .then(results =>{
       console.log(results)
+
       res.send({status:true, data:results, msg:" All documents queried successfully"})
     })
     .catch(error =>{
