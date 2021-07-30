@@ -4,6 +4,10 @@ const bodyParser = require("body-parser")
 const cors = require("cors")
 const dotenv =require('dotenv')
 const assert = require('assert')
+const fastcsv = require("fast-csv");
+const fs = require("fs");
+const ws = fs.createWriteStream("Downloads.csv");
+
 
 dotenv.config()
 
@@ -18,7 +22,7 @@ app.use(bodyParser.json())
 
 
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://Raul1234:<password>@cluster0.enbid.mongodb.net";
+var url = "mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net";
 
 app.post("/hook", (req, res) => {
   var item = req.body
@@ -51,10 +55,34 @@ app.get('/downloadAll', (req,res)=>{
     if (err) throw err;
     var dbo = db.db("sensor-data");
     dbo.collection("3rd Floor CENT").find({}).toArray()
-    .then(results =>{
-      console.log(results)
-
-      res.send({status:true, data:results, msg:" All documents queried successfully"})
+    .then(data =>{
+      fastcsv
+          .write(data, { headers: true })
+          .on("finish", function() {
+            console.log("Write to Downloads.csv successfully!");
+          })
+          .pipe(ws);
+      res.send({status:true, data:data, msg:" All documents queried successfully"})
+    })
+    .catch(error =>{
+      console.error(error)
+    })
+  })
+})
+app.post('/download', (req,res)=>{
+  var dates = req.body
+ MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection("3rd Floor CENT").find({ "event_data.timestamp": { $gt:dates[0], $lt:dates[1]} }).toArray()
+    .then(data =>{
+      fastcsv
+          .write(data, { headers: true })
+          .on("finish", function() {
+            console.log("Write to Downloads.csv successfully!");
+          })
+          .pipe(ws);
+      res.send({status:true, data:data, msg:" All documents queried successfully"})
     })
     .catch(error =>{
       console.error(error)
