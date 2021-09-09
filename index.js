@@ -22,7 +22,7 @@ app.use(bodyParser.json())
 
 
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://Raul1234:<password>@cluster0.enbid.mongodb.net";
+var url = "mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net";
 
 app.post("/hook", (req, res) => {
   var item = req.body
