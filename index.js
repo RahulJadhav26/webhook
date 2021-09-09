@@ -36,6 +36,18 @@ app.post("/hook", (req, res) => {
     })
   });
 })
+app.post("/testhook", (req,res)=>{
+  var item = req.body
+  MongoClient.connect(url, function(err,db){
+    if(err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection("RaspberryPi").insertOne(item)
+    .then((results)=>{
+      console.log("1 document Inserted")
+      res.send({status:true,data:results,msg:"1 documnet Inserted Successfully"})
+    })
+  })
+})
 app.get('/data', (req,res)=>{
  MongoClient.connect(url, function(err, db) {
     if (err) throw err;
