@@ -22,8 +22,8 @@ app.use(bodyParser.json())
 
 
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net";
-
+const { allowedNodeEnvironmentFlags } = require("process")
+var url = process.env.url;
 app.post("/hook", (req, res) => {
   var item = req.body
   MongoClient.connect(url, function(err, db) {
@@ -75,6 +75,17 @@ app.get('/data', (req,res)=>{
     })
   })
 })
+app.post('/collection',(req,res)=>{
+ var databaseName = req.body.database
+MongoClient.connect(url, function(err, db){
+  if(err) throw err
+  var dbo = db.db(databaseName)
+  dbo.listCollections().toArray()
+  .then(data =>{
+    res.send(data)
+  }) 
+})
+}),
 app.get('/downloadAll', (req,res)=>{
  MongoClient.connect(url, function(err, db) {
     if (err) throw err;
