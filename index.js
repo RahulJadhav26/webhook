@@ -54,7 +54,7 @@ app.post("/testhook", (req,res)=>{
   MongoClient.connect(url, function(err,db){
     if(err) throw err;
     var dbo = db.db("sensor-data");
-    dbo.collection("RaspberryPi").insertOne(item)
+    dbo.collection("Refrigerator").insertOne(item)
     .then((results)=>{
       console.log("1 document Inserted")
       res.send({status:true,data:results,msg:"1 documnet Inserted Successfully"})
@@ -74,6 +74,22 @@ app.get('/data', (req,res)=>{
       console.error(error)
     })
   })
+}),
+app.post('/collection_data',(req,res)=>{
+  var collection = req.body.collection
+  MongoClient.connect(url, function(err, db) {
+    if (err) throw err;
+    var dbo = db.db("sensor-data");
+    dbo.collection(collection).find({}).toArray()
+    .then(results =>{
+      var result = results.reverse()
+      res.send({status:true, data:result, msg:" All documents queried successfully"})
+    })
+    .catch(error =>{
+      console.error(error)
+    })
+  })
+
 })
 app.post('/collection',(req,res)=>{
  var databaseName = req.body.database
