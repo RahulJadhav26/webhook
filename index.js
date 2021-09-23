@@ -75,6 +75,9 @@ app.get('/data', (req,res)=>{
     })
   })
 }),
+app.get('/getAllData',(req,res)=>{
+  
+})
 app.post('/collection_data',(req,res)=>{
   var collection = req.body.collection
   MongoClient.connect(url, function(err, db) {
