@@ -23,6 +23,7 @@ app.use(bodyParser.json())
 
 var MongoClient = require('mongodb').MongoClient;
 const { allowedNodeEnvironmentFlags } = require("process")
+const { callbackify } = require("util")
 var url = process.env.url;
 app.post("/hook", (req, res) => {
   var item = req.body
@@ -68,15 +69,50 @@ app.get('/data', (req,res)=>{
     dbo.collection("3rd Floor CENT").find({}).toArray()
     .then(results =>{
       var result = results.reverse()
-      res.send({status:true, data:result, msg:" All documents queried successfully"})
+      res.send({status:true, data:result, msg:" All 3rd Floor CENT documents queried successfully"})
     })
     .catch(error =>{
       console.error(error)
     })
   })
 }),
-app.get('/getAllData',(req,res)=>{
-  
+app.post('/getAllData',(req,res)=>{
+  var databaseName = req.body.database
+  var allResult = []
+  var allAlerts = []
+  MongoClient.connect(url, function(err, db){
+    if(err) throw err
+    console.log(databaseName)
+    var dbo = db.db(databaseName)
+    dbo.listCollections().toArray()
+    .then(data =>{
+          var flag = data.length
+          var count = 0
+          for(var i in data){
+            var collection = data[i].name
+            dbo.collection(collection).find({}).toArray()
+            .then(results =>{
+              count = count + 1
+              var array = results.reverse()
+              array.forEach(element => {
+                if(element.event_type === 'alert'){
+                  allAlerts.push(element)
+                }else if(element.event_type === 'uplink'){
+                  allResult.push(element)
+                }
+              });
+            }).then(()=>{
+             if(count === flag){
+               console.log('sent')
+              res.send({status:true, data:allResult, alerts:allAlerts, msg: "All Documents are queried of "+ databaseName + " database"})
+             }
+            })
+            .catch(error =>{
+              console.error(error)
+            }) 
+          }
+    })
+  })
 })
 app.post('/collection_data',(req,res)=>{
   var collection = req.body.collection
@@ -86,7 +122,7 @@ app.post('/collection_data',(req,res)=>{
     dbo.collection(collection).find({}).toArray()
     .then(results =>{
       var result = results.reverse()
-      res.send({status:true, data:result, msg:" All documents queried successfully"})
+      res.send({status:true, data:result, msg:" All " + collection + " documents queried successfully"})
     })
     .catch(error =>{
       console.error(error)
