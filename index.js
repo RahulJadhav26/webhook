@@ -42,7 +42,7 @@ app.post("/hook1", (req, res) => {
   var collection = req.body.device.thing_name
   MongoClient.connect(url, function(err, db) {
     if (err) throw err;
-    var dbo = db.db("sensor-data");
+    var dbo = db.db("esd_data");
     dbo.collection(collection).insertOne(item)
     .then((results)=>{
       console.log("1 document Inserted")
