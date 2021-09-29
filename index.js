@@ -50,6 +50,15 @@ app.post("/hook1", (req, res) => {
     })
   });
 })
+app.get("/getDatabases",(req,res)=>{
+  MongoClient.connect(url, function(err,db){
+    var adminDB = db.db("test").admin()
+    adminDB.listDatabases(function(err,result){
+      console.log(result.databases)
+      res.send({status:true, data:result.databases , msg:'All databases fetched'})
+    })
+  })
+})
 app.post("/testhook", (req,res)=>{
   var item = req.body
   MongoClient.connect(url, function(err,db){
