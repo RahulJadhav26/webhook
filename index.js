@@ -13,12 +13,14 @@ dotenv.config()
 
 // Initialize express and define a port
 const app = express()
+const routes = require('./routes/esdAPI')
 const PORT = process.env.PORT || 4000
 
 // Tell express to use body-parser's JSON parsing
 app.use(bodyParser.json())
 app.use(cors())
 app.use(bodyParser.json())
+app.use('/esd',routes)
 
 
 var MongoClient = require('mongodb').MongoClient;
@@ -54,8 +56,36 @@ app.get("/getDatabases",(req,res)=>{
   MongoClient.connect(url, function(err,db){
     var adminDB = db.db("test").admin()
     adminDB.listDatabases(function(err,result){
-      console.log(result.databases)
+      // console.log(result.databases)
       res.send({status:true, data:result.databases , msg:'All databases fetched'})
+    })
+  })
+})
+app.get("/getAllSensors",(req,res)=>{
+  var sensors = []
+  var flag = false
+  var flag1 = false
+  MongoClient.connect(url, function(err,db){
+    var adminDB = db.db("test").admin()
+    adminDB.listDatabases(function(err,result){
+      var count = 0
+      for(var d in result.databases){
+        if(result.databases[d].name !== 'admin' && result.databases[d].name !== 'local'){
+            var dbo = db.db(result.databases[d].name)
+            dbo.listCollections().toArray()
+            .then(data =>{
+              for(i in data){
+                count = count + 1
+                // console.log(count)
+                sensors.push(data[i].name)
+              }    
+            }).then(()=>{
+              if( Number(d) === Number(count - 2)){
+                 res.send({status: true, data: sensors, msg:"All sensors from all databases queried"})
+              }
+            })
+        }
+      }  
     })
   })
 })
@@ -112,7 +142,7 @@ app.post('/getAllData',(req,res)=>{
               });
             }).then(()=>{
              if(count === flag){
-               console.log('sent')
+               console.log('All Data queried from the Database ' + databaseName)
               res.send({status:true, data:allResult, alerts:allAlerts, msg: "All Documents are queried of "+ databaseName + " database"})
              }
             })
@@ -125,9 +155,12 @@ app.post('/getAllData',(req,res)=>{
 })
 app.post('/collection_data',(req,res)=>{
   var collection = req.body.collection
+  var databaseName = req.body.database
+  console.log(collection)
+  console.log(databaseName)
   MongoClient.connect(url, function(err, db) {
     if (err) throw err;
-    var dbo = db.db("sensor-data");
+    var dbo = db.db(databaseName);
     dbo.collection(collection).find({}).toArray()
     .then(results =>{
       var result = results.reverse()
@@ -187,6 +220,21 @@ app.post('/download', (req,res)=>{
     .catch(error =>{
       console.error(error)
     })
+  })
+})
+app.post('/moveCollection', (req,res)=>{
+  var sourceCollection = req.sourceCollection
+  var targetCollection = req.targetCollection
+  var targetDatabase = req.targetDatabase
+  var destinationDatabase = req.destinationDatabase
+  MongoClient.connect(url, function(err,db){
+    var dbo = db.db(targetDatabase)
+    
+    var bulk = client.getSiblingDB(destinationDatabase)[targetCollection].initializeUnorderedBulkOp();
+    db.getCollection(sourceCollection).find().forEach(function (d) {
+      bulk.insert(d);
+    });
+    bulk.execute();
   })
 })
 
