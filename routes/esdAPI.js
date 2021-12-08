@@ -69,11 +69,11 @@ router.get('/getAllSensors', (req,res)=>{
     if(err) throw err
     var dbo = db.db("Lookup_Table")
     var sensors = []
-    dbo.collection('Owner_LT').find({}).toArray()
+    dbo.collection('Sensor_LT').find({}).toArray()
     .then(results =>{
       for (i in results[0]){
         if(i !== '_id'){
-        sensors = Array.of(...sensors, ...results[0][i])
+        sensors.push(i)
         }
       }
     }).then(()=>{
@@ -210,17 +210,17 @@ router.post('/editSensor', (req,res)=>{
                     }
                   })
                   .catch((err)=>{
-                    res.send({id:"3",status:false, data:err, msg:"Error Occurred"})
+                    res.send({id:"3",status:false, data:err, msg:"Error Occurred while updating the source building LT sensor arra"})
                   })
               }
               })
               .catch((err)=>{
-                res.send({id:"2",status:false, data:err, msg:"Error Occurred"})
+                res.send({id:"2",status:false, data:err, msg:"Error Occurred while updating the Sensor LT "})
               })
         }
       })
       .catch((err)=>{
-        res.send({id:"1", status:false, data:err, msg:"Error Occurred"})
+        res.send({id:"1", status:false, data:err, msg:"Error Occurred while pushing the target Building sensor array"})
       })
   })
 })
