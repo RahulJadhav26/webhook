@@ -295,6 +295,28 @@ router.post('/addBuilding', (req,res) =>{
         }) 
     })
   })
+  //  ACKNOWLEDGE ALERTS
+
+  router.post('/acknowledgeAlert', (req,res)=>{
+    console.log('Request Received')
+    var id = req.body.id
+    var sensor = req.body.device
+    MongoClient.connect(url, function(err, db){
+      if(err) throw err;
+      var dbo = db.db('SensorCollection')
+      dbo.collection(sensor)
+      .findOneAndUpdate(
+        {_id:ObjectId(id)},
+        {$set:{"event_data.triggered" : false}})
+      .then((data,err)=>{
+        if(err) throw err
+        if(data){
+          console.log("Alert updated Successfully")
+          res.send({status: true, data:data, msg:'Successfully Updated the Alert Acknowledgment'})
+        }
+      })
+    })
+  })
 
 // POST WEBHOOK TO RECIEVE DATA FROM MULTITECH
 router.post('/hook', (req,res) => {
