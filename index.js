@@ -7,6 +7,8 @@ const assert = require('assert')
 const fastcsv = require("fast-csv");
 const fs = require("fs");
 const ws = fs.createWriteStream("Downloads.csv");
+const passport = require('passport')
+const mongoose = require('mongoose')
 
 
 dotenv.config()
@@ -14,19 +16,37 @@ dotenv.config()
 // Initialize express and define a port
 const app = express()
 const routes = require('./routes/esdAPI')
+const users = require('./routes/users');
 const PORT = process.env.PORT || 4000
 
 // Tell express to use body-parser's JSON parsing
+app.use(bodyParser.urlencoded({
+  extended: false,
+}));
 app.use(bodyParser.json())
 app.use(cors())
-app.use(bodyParser.json())
+app.use(passport.initialize());
+require('./config/passport')(passport);
 app.use('/esd',routes)
+app.use('/api/users', users);
 
 
 var MongoClient = require('mongodb').MongoClient;
 const { allowedNodeEnvironmentFlags } = require("process")
 const { callbackify } = require("util")
 var url = process.env.url;
+const db = require('./config/keys');
+
+mongoose.connect(db.mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log(`Database sucessfully connected ${db.mongoURI}`);
+}).catch((err) => {
+  console.log(`Unable to connect to Database ERROR : ${err}`);
+});
+
+
 app.post("/hook", (req, res) => {
   var item = req.body
   MongoClient.connect(url, function(err, db) {
