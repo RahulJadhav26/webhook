@@ -90,12 +90,13 @@ router.get('/getAllSensors', (req, res) => {
 
 router.post('/collection_data', (req, res) => {
   var collection = req.body.collection
+  var day = req.body.Day
   var allResult = []
   var allAlerts = []
   MongoClient.connect(url, function (err, db) {
     if (err) throw err
     var dbo = db.db('SensorCollection')
-    dbo.collection(collection).find({}).toArray()
+    dbo.collection(collection).find({ 'event_data.timestamp': { $gte: Date.now() - day * 24 * 60 * 60 * 1000 } }).toArray()
       .then(results => {
         var result = results.reverse()
         result.forEach(element => {
@@ -116,6 +117,7 @@ router.post('/collection_data', (req, res) => {
 // POST API Get All Sensor Data from all sensors in a Building
 router.post('/getAllData', (req, res) => {
   var databaseName = req.body.database
+  var day = req.body.Day
   var allResult = []
   var allAlerts = []
   var count = 0
@@ -129,7 +131,7 @@ router.post('/getAllData', (req, res) => {
         var sensors = data[0].sensors
         for (var i in sensors) {
           var collection = sensors[i]
-          dbo_Sensor.collection(collection).find({}).toArray()
+          dbo_Sensor.collection(collection).find({ 'event_data.timestamp': { $gte: Date.now() - day * 24 * 60 * 60 * 1000 } }).toArray()
             .then(results => {
               var array = results.reverse()
               array.forEach(element => {
