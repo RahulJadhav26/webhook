@@ -32,32 +32,7 @@ router.post('/register', (req, res) => {
         success: false,
         msg: 'User already Exist '
       })
-    } else {
-      //  The Data is valid and now we can register
-      const newUser = new User({
-        name,
-        username,
-        password,
-        email,
-        Role,
-        blocked,
-        blockedTime
-      })
-      // Generate salt for password
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (er, hash) => {
-          if (er) {
-            throw er
-          } else {
-            newUser.password = hash
-            newUser.save().then((user) => res.status(200).json({
-              success: true,
-              msg: 'User is now Registered'
-            }))
-          }
-        })
-      })
-    }
+    } 
   }).catch((err) => {
     res.send(err)
   })
