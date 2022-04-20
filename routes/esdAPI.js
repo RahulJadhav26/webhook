@@ -326,16 +326,36 @@ router.post('/acknowledgeAlert', (req, res) => {
 // POST WEBHOOK TO RECIEVE DATA FROM MULTITECH
 router.post('/hook', (req, res) => {
   var item = req.body
-  var collection = req.body.device.thing_name
-  MongoClient.connect(url, function (err, db) {
-    if (err) throw err
-    var dbo = db.db('SensorCollection')
-    dbo.collection(collection).insertOne(item)
-      .then((results) => {
-        console.log('1 document Inserted')
-        res.send({ status: true, data: results, msg: '1 document Inserted successfully' })
-      })
-  })
+  try{
+    if(req.body.hasOwnProperty('device')){
+      if(req.body.device.hasOwnProperty('thing_name')){
+        var collection = req.body.device.thing_name
+        MongoClient.connect(url, function (err, db) {
+          if (err) throw err
+          var dbo = db.db('SensorCollection')
+          dbo.collection(collection).insertOne(item)
+            .then((results) => {
+              console.log('1 document Inserted')
+              res.send({ status: true, data: results, msg: '1 document Inserted successfully' })
+            })
+        })
+      }
+    } else {
+      var collection = "Miscellaneous"
+        MongoClient.connect(url, function (err, db) {
+          if (err) throw err
+          var dbo = db.db('SensorCollection')
+          dbo.collection(collection).insertOne(item)
+            .then((results) => {
+              console.log('1 document Inserted')
+              res.send({ status: true, data: results, msg: '1 document Inserted successfully' })
+            })
+        })
+    } 
+  } catch(error){
+    res.send(error)
+  }
 })
+
 
 module.exports = router
