@@ -91,12 +91,14 @@ router.get('/getAllSensors', (req, res) => {
 router.post('/collection_data', (req, res) => {
   var collection = req.body.collection
   var day = req.body.Day
+  var queryRange = Date.now() - day * 24 * 60 * 60 * 1000
   var allResult = []
   var allAlerts = []
+  var date = new Date()
   MongoClient.connect(url, function (err, db) {
     if (err) throw err
     var dbo = db.db('SensorCollection')
-    dbo.collection(collection).find({ 'event_data.timestamp': { $gte: Date.now() - day * 24 * 60 * 60 * 1000 } }).toArray()
+    dbo.collection(collection).find({$or:[{ 'event_data.timestamp': { $gte: queryRange } },{ 'event_data.timestamp': { $lte: toString(Date.now()) } }]}).toArray()
       .then(results => {
         var result = results.reverse()
         result.forEach(element => {
@@ -118,6 +120,10 @@ router.post('/collection_data', (req, res) => {
 router.post('/getAllData', (req, res) => {
   var databaseName = req.body.database
   var day = req.body.Day
+  var queryRange = Date.now() - day * 24 * 60 * 60 * 1000
+  console.log(queryRange)
+  console.log(queryRange)
+  
   var allResult = []
   var allAlerts = []
   var count = 0
@@ -131,7 +137,8 @@ router.post('/getAllData', (req, res) => {
         var sensors = data[0].sensors
         for (var i in sensors) {
           var collection = sensors[i]
-          dbo_Sensor.collection(collection).find({ 'event_data.timestamp': { $gte: Date.now() - day * 24 * 60 * 60 * 1000 } }).toArray()
+          dbo_Sensor.collection(collection).find({$or:[{ 'event_data.timestamp': { $gte: queryRange } },{ 'event_data.timestamp': { $lte: toString(queryRange) } }]}).toArray()
+          // dbo_Sensor.collection(collection).find({"event_data.timestamp":{$gte: 1663806829 - 1 * 24 * 60 * 60 * 1000}}, {"event_data.timestamp":{$gte: 1663806829 - 1 * 24 * 60 * 60 * 1000}}).toArray()
             .then(results => {
               var array = results.reverse()
               array.forEach(element => {
@@ -145,6 +152,7 @@ router.post('/getAllData', (req, res) => {
               // After every sensor data/alert is pushed to array the count is increased by one and hence matched with the sensors length
               count = count + 1 // after every sensor the count is increased
               if (Number(count) === Number(sensors.length)) {
+                console.log(allAlerts)
                 res.send({ status: true, data: allResult, alerts: allAlerts, msg: 'All  Documents are queried of Database ' + databaseName })
               }
             })
