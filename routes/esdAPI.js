@@ -152,7 +152,6 @@ router.post('/getAllData', (req, res) => {
               // After every sensor data/alert is pushed to array the count is increased by one and hence matched with the sensors length
               count = count + 1 // after every sensor the count is increased
               if (Number(count) === Number(sensors.length)) {
-                console.log(allAlerts)
                 res.send({ status: true, data: allResult, alerts: allAlerts, msg: 'All  Documents are queried of Database ' + databaseName })
               }
             })
