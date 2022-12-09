@@ -38,17 +38,32 @@ var MongoClient = require('mongodb').MongoClient
 const { allowedNodeEnvironmentFlags } = require('process')
 const { callbackify } = require('util')
 // var url = `mongodb+srv://${process.env.MONGO_ADMIN}:${process.env.MONGO_PASS}@${process.env.MONGO_SERVER}:${process.env.MONGO_PORT}`
-var url = 'mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/Users?authSource=admin&replicaSet=atlas-14kfk8-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
+var pass = process.env.MONGO_PASS
+var user = process.env.MONGO_USER
+var url
+if (process.env.method === 'onprem') {
+  url = 'mongodb://' + user + ':' + pass + '@mongo:27017/?authMechanism=DEFAULT'
+  url1 = 'mongodb://' + user + ':' + pass + '@mongo:27017/Users'
+  mongoose.connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(() => {
+    console.log(`Database sucessfully connected ${url}`)
+  }).catch((err) => {
+    console.log(`Unable to connect to Database ERROR : ${err}`)
+  })
+} else {
+  url = 'mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/admin?authSource=admin&replicaSet=atlas-14kfk8-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
+  mongoose.connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(() => {
+    console.log(`Database sucessfully connected ${url}`)
+  }).catch((err) => {
+    console.log(`Unable to connect to Database ERROR : ${err}`)
+  })
+}
 const db = require('./config/keys')
-
-mongoose.connect(url, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log(`Database sucessfully connected ${url}`)
-}).catch((err) => {
-  console.log(`Unable to connect to Database ERROR : ${err}`)
-})
 
 app.post('/hook', (req, res) => {
   var item = req.body

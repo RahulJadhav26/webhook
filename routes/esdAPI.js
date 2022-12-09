@@ -6,10 +6,27 @@ const router = express.Router()
 var MongoClient = require('mongodb').MongoClient
 var ObjectId = require('mongodb').ObjectId
 // var url = `mongodb://${process.env.MONGO_ADMIN}:${process.env.MONGO_PASS}@${process.env.MONGO_SERVER}:${process.env.MONGO_PORT}`
-var url = 'mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/admin?authSource=admin&replicaSet=atlas-14kfk8-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
+var pass = process.env.MONGO_PASS
+var user = process.env.MONGO_USER
+var url
+if (process.env.method === 'onprem') {
+  url = 'mongodb://' + user + ':' + pass + '@mongo:27017/?authMechanism=DEFAULT'
+} else {
+  url = 'mongodb+srv://Raul1234:Raul1234@cluster0.enbid.mongodb.net/admin?authSource=admin&replicaSet=atlas-14kfk8-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true'
+}
 
 router.get('/', (req, res) => {
   res.send('Welcome to ESD Database route API')
+})
+router.get('/check', (req, res) => {
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err
+    // List all the available databases
+    db.listDatabases(function (err, result) {
+      res.send(result.databases)
+      db.close()
+    })
+  })
 })
 // POST API for QUERYING  THE LOOKUP TABLE FROM THE DATABASE
 router.post('/collection', (req, res) => {
@@ -98,7 +115,7 @@ router.post('/collection_data', (req, res) => {
   MongoClient.connect(url, function (err, db) {
     if (err) throw err
     var dbo = db.db('SensorCollection')
-    dbo.collection(collection).find({$or:[{ 'event_data.timestamp': { $gte: queryRange } },{ 'event_data.timestamp': { $lte: toString(Date.now()) } }]}).toArray()
+    dbo.collection(collection).find({ $or: [{ 'event_data.timestamp': { $gte: queryRange } }, { 'event_data.timestamp': { $lte: toString(Date.now()) } }] }).toArray()
       .then(results => {
         var result = results.reverse()
         result.forEach(element => {
@@ -123,7 +140,7 @@ router.post('/getAllData', (req, res) => {
   var queryRange = Date.now() - day * 24 * 60 * 60 * 1000
   console.log(queryRange)
   console.log(queryRange)
-  
+
   var allResult = []
   var allAlerts = []
   var count = 0
@@ -137,7 +154,7 @@ router.post('/getAllData', (req, res) => {
         var sensors = data[0].sensors
         for (var i in sensors) {
           var collection = sensors[i]
-          dbo_Sensor.collection(collection).find({$or:[{ 'event_data.timestamp': { $gte: queryRange } },{ 'event_data.timestamp': { $lte: toString(queryRange) } }]}).toArray()
+          dbo_Sensor.collection(collection).find({ $or: [{ 'event_data.timestamp': { $gte: queryRange } }, { 'event_data.timestamp': { $lte: toString(queryRange) } }] }).toArray()
           // dbo_Sensor.collection(collection).find({"event_data.timestamp":{$gte: 1663806829 - 1 * 24 * 60 * 60 * 1000}}, {"event_data.timestamp":{$gte: 1663806829 - 1 * 24 * 60 * 60 * 1000}}).toArray()
             .then(results => {
               var array = results.reverse()
@@ -333,9 +350,9 @@ router.post('/acknowledgeAlert', (req, res) => {
 // POST WEBHOOK TO RECIEVE DATA FROM MULTITECH
 router.post('/hook', (req, res) => {
   var item = req.body
-  try{
-    if(req.body.hasOwnProperty('device')){
-      if(req.body.device.hasOwnProperty('thing_name')){
+  try {
+    if (req.body.hasOwnProperty('device')) {
+      if (req.body.device.hasOwnProperty('thing_name')) {
         var collection = req.body.device.thing_name
         MongoClient.connect(url, function (err, db) {
           if (err) throw err
@@ -348,21 +365,20 @@ router.post('/hook', (req, res) => {
         })
       }
     } else {
-      var collection = "Miscellaneous"
-        MongoClient.connect(url, function (err, db) {
-          if (err) throw err
-          var dbo = db.db('SensorCollection')
-          dbo.collection(collection).insertOne(item)
-            .then((results) => {
-              console.log('1 document Inserted')
-              res.send({ status: true, data: results, msg: '1 document Inserted successfully' })
-            })
-        })
-    } 
-  } catch(error){
+      var collection = 'Miscellaneous'
+      MongoClient.connect(url, function (err, db) {
+        if (err) throw err
+        var dbo = db.db('SensorCollection')
+        dbo.collection(collection).insertOne(item)
+          .then((results) => {
+            console.log('1 document Inserted')
+            res.send({ status: true, data: results, msg: '1 document Inserted successfully' })
+          })
+      })
+    }
+  } catch (error) {
     res.send(error)
   }
 })
-
 
 module.exports = router

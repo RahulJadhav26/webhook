@@ -32,7 +32,7 @@ router.post('/register', (req, res) => {
         success: false,
         msg: 'User already Exist '
       })
-    } 
+    }
   }).catch((err) => {
     res.send(err)
   })
